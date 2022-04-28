@@ -1,6 +1,6 @@
 ---
-title: "Filtered Color Detection"
-excerpt: "FPGA verilog module that display the position of custom filtered color objects"
+title: "GPG SPI LED and Motors"
+excerpt: "GopiGo SPI LED and Motors"
 
 sidebar:
   nav: "docs"

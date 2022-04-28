@@ -1,6 +1,6 @@
 ---
 title: "ROS & GAZEBO F1"
-excerpt: "New developments"
+excerpt: "Trying to run the FPGA-Robotics F1 simulation"
 
 sidebar:
   nav: "docs"

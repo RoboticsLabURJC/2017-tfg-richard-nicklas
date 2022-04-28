@@ -1,6 +1,6 @@
 ---
-title: "Gazebo/ROS Camera"
-excerpt: "New developments"
+title: "RoboticsAcademy Docker and alternatives"
+excerpt: "trying to run the examples on the docker containers"
 
 sidebar:
   nav: "docs"

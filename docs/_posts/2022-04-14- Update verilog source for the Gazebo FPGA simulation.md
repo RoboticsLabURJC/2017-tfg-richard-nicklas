@@ -1,6 +1,6 @@
 ---
-title: "Gazebo/ROS Camera"
-excerpt: "New developments"
+title: "Updating verilog source"
+excerpt: "After achieving the complete simulation I'm updating the verilog source that has new functionality"
 
 sidebar:
   nav: "docs"
