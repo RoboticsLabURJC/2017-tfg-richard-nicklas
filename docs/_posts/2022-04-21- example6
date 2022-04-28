@@ -1,0 +1,41 @@
+---
+title: "Verilator"
+excerpt: "New developments"
+
+sidebar:
+  nav: "docs"
+
+toc: true
+toc_label: "TOC installation"
+toc_icon: "cog"
+
+
+categories:
+- your category
+tags:
+- Sim
+- video
+- Computer Vision
+
+
+author: R. Nicklas
+pinned: false
+---
+
+
+## Example6
+
+Example6 tries to expand on the complete simulation achieved in example5 by updating the verilog modules, the C++ interface interacting with verilated code needs updating as new input and outputs have been defined. For some reason I'm not receiving the correct LED pos output, filtering colors seem to be broken too but I'm able to receive the non-filtered image output. 
+
+The issue seems to come from changes on the verilog files so I'll try to debug the simulation, as the verilog code was "verilated" with the --trace option its generating a VCD file:
+
+--trace
+    Adds waveform tracing code to the model. Verilator will generate additional {prefix}__Trace*.cpp files that will need to be compiled. In addition verilated_vcd_sc.cpp (for SystemC traces) or verilated_vcd_c.cpp (for both) must be compiled and linked in. If using the Verilator generated Makefiles, these will be added as source targets for you. If you're not using the Verilator makefiles, you will need to add these to your Makefile manually.
+
+    Having tracing compiled in may result in some small performance losses, even when waveforms are not turned on during model execution. 
+
+
+How do I view waveforms (traces)?
+    Verilator makes standard VCD (Value Change Dump) files. They are viewable with the public domain Dinotrace or GtkWave programs, or any of the many commercial offerings.
+
+ 
