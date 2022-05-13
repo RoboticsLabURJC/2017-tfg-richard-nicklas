@@ -1,0 +1,3 @@
+/home/ranicklas/cosas/opencv/cmaketest/CMakeFiles/rebuild_cache.dir
+/home/ranicklas/cosas/opencv/cmaketest/CMakeFiles/edit_cache.dir
+/home/ranicklas/cosas/opencv/cmaketest/CMakeFiles/VideoCapture.dir

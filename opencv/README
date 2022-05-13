@@ -1,0 +1,21 @@
+https://medium.com/@pokhrelsuruchi/setting-up-opencv-for-python-and-c-in-ubuntu-20-04-6b0331e37437
+
+
+TENEMOS QUE METER EL INCLUDE EN EL PATH O NO ENCUENTRA LOS .h
+export PATH=$PATH:/usr/include
+
+g++ -o test test.cpp `pkg-config --cflags --libs opencv4`
+
+Otro ejemplo con CMAKE en cmaketest
+
+
+CAMERA: 
+
+ dmesg | grep -i "Camera"
+
+[17697.748918] usb 1-1: Product: HP HD Camera
+[17698.438692] usb 1-1: Found UVC 1.00 device HP HD Camera (04ca:7054)
+[17698.477623] input: HP HD Camera: HP HD Camera as /devices/pci0000:00/0000:00:11.0/0000:02:03.0/usb1/1-1/1-1:1.0/input/input6
+
+
+VMWare, hubo que cambiar el tema de los usb a 3.1 (de 2.0) para que funcionara la camara web

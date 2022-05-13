@@ -1,0 +1,5 @@
+https://verilator.org/guide/latest/example_cc.html#example-c-execution
+
+verilator -Wall --cc --exe --build sim_main.cpp our.v
+
+./obj_dir/Vtop 
