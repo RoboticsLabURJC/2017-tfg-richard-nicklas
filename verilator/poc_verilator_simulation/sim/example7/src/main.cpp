@@ -31,7 +31,7 @@
 #include <opencv2/highgui/highgui.hpp>
 #include <cv_bridge/cv_bridge.h>
 
-
+#include <Conversor.h>
 
 #define LED_ICON "\uf111"
 #define START_ICON "\uf04b"
@@ -192,6 +192,35 @@ void tickDut(Vdesign_top *top, const std::vector<SimElement *> &sim_elements,
   top->eval();
   dumpTrace(m_trace, sim_time, true);
 }
+
+  //8
+  static double PosToW_inner(unsigned char pos){
+  
+   std::bitset<8> bitset{pos};
+
+   std::cout << "Pos [" <<  bitset << "]"<<std::endl;
+
+   int count=0;    
+
+   for (int i = 8; i > 4; i--) {
+        int led_n = i - 1;
+        bool led_on = pos & (1 << led_n);
+	if (led_on) count--;
+   }
+
+   for (int i = 4; i > 0; i--) {
+        int led_n = i - 1;
+        bool led_on = pos & (1 << led_n);
+	if (led_on) count++;
+   }
+
+   std::cout << "C [" <<  count << "]"<<std::endl;
+	return count>0 ? 0.5:-0.5;
+  }
+
+
+
+
 
 void resetDut(Vdesign_top *top, const std::vector<SimElement *> &sim_elements,
               vluint64_t *sim_time, VerilatedVcdC *m_trace = 0,
@@ -488,6 +517,8 @@ int main(int argc, char **argv) {
           ImGui::SameLine();
         }
       }
+
+      double test = PosToW_inner(top->leds);
 
       ImGui::Text("[Dis]");
       ImGui::SameLine();
