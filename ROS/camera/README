@@ -1,0 +1,13 @@
+
+gazebo --verbose camera.world
+
+
+
+Included plugin into the .world file (model->link->sensor->plugin), the plugin is par of the ros/noetic dist intalled in the machine but $GAZEBO_PLUGIN_PATH needs to be updated to inlcude the location!
+
+export GAZEBO_PLUGIN_PATH=$GAZEBO_PLUGIN_PATH:/opt/ros/noetic/lib/
+
+
+To run with plugin
+
+rosrun gazebo_ros gazebo --verbose camera.world

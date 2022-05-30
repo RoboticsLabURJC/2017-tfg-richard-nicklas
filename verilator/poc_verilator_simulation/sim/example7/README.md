@@ -5,7 +5,7 @@ I use a gazebo world with a camera to publish simulated video recording to ROS t
 
 
 
-roslaunch urdf_tutorial display.launch model:=car.urdf
+roslaunch display.launch
 
 
 rosrun gazebo_ros gazebo --verbose car.world

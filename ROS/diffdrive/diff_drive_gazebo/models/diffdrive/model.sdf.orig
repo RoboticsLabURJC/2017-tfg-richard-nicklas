@@ -1,5 +1,6 @@
-<?xml version="1.0"?>
-<robot name="car">
+<?xml version='1.0'?>
+
+<sdf version='1.4'>
 
 
   <material name="blue">
@@ -8,44 +9,49 @@
 
   <material name="white">
     <color rgba="1 1 1 1"/>
-  </material>
+    </material>
 
-  <!--KDL does not support a root link with an inertia.  As a workaround, you can add an extra dummy link to your URDF.-->
-    <!-- Base link --> 
-    <link name="base_link" />
 
-  <joint name="dummy_joint" type="fixed">
-     <parent link="base_link"/>
-     <child link="chassis"/>
-   </joint>
+  <model name="diffdrive">
+
+  <static>false</static>
 
    <link name='chassis'>
      <pose>0 0 0.1 0 0 0</pose>
 
    <inertial>
-	   <mass value="10.0"/>
+     <mass>10.0</mass>
      <pose>0.0 0 0.1 0 0 0</pose>
-     <inertia ixx="0.5" ixy="0" ixz="0" iyy="1.0" iyz="0" izz="0.1"/>
+     <inertia>
+     <ixx>0.5</ixx>
+     <iyy>1.0</iyy>
+     <izz>0.1</izz>
+     </inertia>
     </inertial>
    
     <collision name='collision'>
        <geometry>
-       <box size="0.4 0.2 0.1"/>
+       <box>
+       <size>.4 .2 .1</size>
+       </box>
        </geometry>
      </collision>
 
     <visual name='visual'>
       <pose>0 0 0.0 0 0 0</pose>
       <geometry>
-       <box size="0.4 0.2 0.1"/>
+      <box>
+      <size>.4 .2 .1</size>
+      </box>
       </geometry>
-      <material name="white"/> 
-   </visual>
+    </visual>
 
 <collision name='caster_collision'>
  <pose>-0.15 0 -0.05 0 0 0</pose>
  <geometry>
-	 <sphere radius="0.05"/>
+ <sphere>
+ <radius>.05</radius>
+ </sphere>
  </geometry>
 
  <surface>
@@ -63,63 +69,77 @@
 <visual name='caster_visual'>
  <pose>-0.15 0 -0.05 0 0 0</pose>
  <geometry>
-	 <sphere radius="0.05"/>
+ <sphere>
+ <radius>.05</radius>
+ </sphere>
  </geometry>
  </visual>
 
 </link>
 
-
-
 <link name="left_wheel">
  <pose>0.1 0.13 0.1 0 1.5707 1.5707</pose>
  <collision name="collision">
  <geometry>
- <cylinder radius="0.1" length="0.05"/>
+ <cylinder>
+ <radius>.1</radius>
+ <length>.05</length>
+ </cylinder>
  </geometry>
  </collision>
  <visual name="visual">
  <geometry>
- <cylinder radius="0.1" length="0.05"/>
+ <cylinder>
+ <radius>.1</radius>
+ <length>.05</length>
+ </cylinder>
  </geometry>
- <material name="blue"/> 
+ <material name="white"/> 
 </visual>
  </link>
 
-<joint type="continuous" name="left_wheel_hinge">
- <limit effort="100" velocity="30"/>
+<joint type="revolute" name="left_wheel_hinge">
  <pose>0 0 -0.03 0 0 0</pose>
-    <child link="left_wheel"/>
-    <parent link="chassis"/>
-    <axis xyz="0 1 0"/>
+ <child>left_wheel</child>
+ <parent>chassis</parent>
+ <axis>
+ <xyz>0 1 0</xyz>
+ </axis>
  </joint>
-
 
 
 <link name="right_wheel">
  <pose>0.1 -0.13 0.1 0 1.5707 1.5707</pose>
  <collision name="collision">
  <geometry>
- <cylinder radius="0.1" length="0.05"/>
+ <cylinder>
+ <radius>.1</radius>
+ <length>.05</length>
+ </cylinder>
  </geometry>
  </collision>
  <visual name="visual">
  <geometry>
- <cylinder radius="0.1" length="0.05"/>
+ <cylinder>
+ <radius>.1</radius>
+ <length>.05</length>
+ </cylinder>
  </geometry>
- <material name="blue"/> 
+ <material name="white"/> 
  </visual>
  </link>
 
-<joint type="continuous" name="right_wheel_hinge">
-		<!--<joint type="revolute" name="right_wheel_hinge">-->
- <limit effort="100" velocity="30"/>
-	 <!--<limit effort="100" velocity="30"  lower="-2.967" uppper="2.967"/>-->
+<joint type="revolute" name="right_wheel_hinge">
  <pose>0 0 0.03 0 0 0</pose>
-    <child link="right_wheel"/>
-    <parent link="chassis"/>
-    <axis xyz="0 1 0"/>
+ <child>right_wheel</child>
+ <parent>chassis</parent>
+ <axis>
+ <xyz>0 1 0</xyz>
+ </axis>
  </joint>
+
+
+
 
 <plugin name="differential_drive_controller" filename="libgazebo_ros_diff_drive.so">
  <alwaysOn>true</alwaysOn>
@@ -135,11 +155,6 @@
  <robotBaseFrame>base_footprint</robotBaseFrame>
  </plugin>
 
+  </model>
 
-   <gazebo>
-        <plugin name="joint_state_publisher" filename="libgazebo_ros_joint_state_publisher.so">
-            <jointName>left_wheel_hinge,right_wheel_hinge</jointName>
-        </plugin>
-    </gazebo>
-
-  </robot>
+</sdf>

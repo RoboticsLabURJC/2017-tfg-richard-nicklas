@@ -11,13 +11,8 @@
   </material>
 
   <!--KDL does not support a root link with an inertia.  As a workaround, you can add an extra dummy link to your URDF.-->
-    <!-- Base link --> 
-    <link name="base_link" />
-
-  <joint name="dummy_joint" type="fixed">
-     <parent link="base_link"/>
-     <child link="chassis"/>
-   </joint>
+<link name="dummy">
+   </link>
 
    <link name='chassis'>
      <pose>0 0 0.1 0 0 0</pose>
@@ -69,6 +64,10 @@
 
 </link>
 
+  <joint name="dummy_joint" type="fixed">
+     <parent link="dummy"/>
+     <child link="chassis"/>
+   </joint>
 
 
 <link name="left_wheel">
@@ -135,11 +134,5 @@
  <robotBaseFrame>base_footprint</robotBaseFrame>
  </plugin>
 
-
-   <gazebo>
-        <plugin name="joint_state_publisher" filename="libgazebo_ros_joint_state_publisher.so">
-            <jointName>left_wheel_hinge,right_wheel_hinge</jointName>
-        </plugin>
-    </gazebo>
 
   </robot>
