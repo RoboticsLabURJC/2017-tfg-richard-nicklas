@@ -22,7 +22,7 @@
 
 
   <!-- Spawn the robot into Gazebo -->
-  <node name="spawn_bot" pkg="gazebo_ros" type="spawn_model" args="-file $(find diff_drive_gazebo)/models/diffdrive/model.sdf -sdf -model diffdrive" />
+	  <!--  <node name="spawn_bot" pkg="gazebo_ros" type="spawn_model" args="-file $(find diff_drive_gazebo)/models/diffdrive/model.sdf -sdf -model diffdrive" />-->
   <node name="spawn_ball" pkg="gazebo_ros" type="spawn_model" args="-file $(find diff_drive_gazebo)/models/ball/ball.sdf -sdf -model ball" />
 
 </launch>

@@ -193,7 +193,7 @@ void tickDut(Vdesign_top *top, const std::vector<SimElement *> &sim_elements,
   dumpTrace(m_trace, sim_time, true);
 }
 
-  //8
+  //8 bit
   static double PosToW_inner(unsigned char pos){
  
 
@@ -201,7 +201,9 @@ void tickDut(Vdesign_top *top, const std::vector<SimElement *> &sim_elements,
  
    std::cout << "Pos [" <<  bitset << "]"<<std::endl;
 
-   int count=0;    
+   int count=0;  
+   //default angular movement  
+   double w=0.05;
 
    for (int i = 8; i > 4; i--) {
         int led_n = i - 1;
@@ -217,15 +219,61 @@ void tickDut(Vdesign_top *top, const std::vector<SimElement *> &sim_elements,
  
 
    std::cout << "C [" <<  count << "]"<<std::endl;
-	return count>0 ? 0.15:-0.15;
+	//return count>0 ? 0.15:-0.15;
+	
+  if (count>0){
+    w=0.15;
+  }else if(count<0){
+    w=-0.15;
+  }else{
+    w=0.1;
+  }
+  
+  return w;
   }
 
+  //3 bit
   static double DisToV_inner(unsigned char dis){
+  
+	  
+    std::bitset<3> bitset{dis};
 
+    unsigned long dist = bitset.to_ulong();
+    double v = 0.0;
 
+    std::cout << "Dis [" <<  bitset << "]: "<< dist <<std::endl;
+   
+  switch(dist) {
+  case 0:
+    break;
+  case 1:
+    v=0.25;
+    break;
+  case 2:
+    v=0.2;
+    break;
+  case 3:
+    v=0.15;
+    break;
+  case 4:
+    v=0.1;
+    break;
+  case 5:
+    v=0.05;
+    break;
+  case 6:
+    v=0.00;
+    break;
+  case 7:
+    v=-0.05;
+    break;
+  default:
+    v=0.00;
+}
+  return v;
   }
 
-  double publishVW(double v, double w, ros::Publisher &pub){
+  void publishVW(double v, double w, ros::Publisher &pub){
 
    geometry_msgs::Twist base_cmd;
 
@@ -443,7 +491,7 @@ int main(int argc, char **argv) {
   ros::NodeHandle motor_nh;
 
   ros::Publisher cmd_vel_pub_;
-  cmd_vel_pub_ = nh_.advertise<geometry_msgs::Twist>("/cmd_vel", 1);
+  cmd_vel_pub_ = motor_nh.advertise<geometry_msgs::Twist>("/cmd_vel", 1);
   
 
 
@@ -554,7 +602,7 @@ int main(int argc, char **argv) {
         }
       }
       
-      double v = DisToV_inner(top->leds);
+      double v = DisToV_inner(top->proximity);
 
       publishVW(v,w,cmd_vel_pub_);
    

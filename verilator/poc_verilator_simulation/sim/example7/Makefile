@@ -18,7 +18,7 @@ ROS_LIB_DIR = /opt/ros/noetic/lib
 
 
 CXXFLAGS = -I$(ROS_INCLUDE_DIR) -I$(INC_DIR) -I$(IMGUI_DIR) -I$(IMGUI_DIR)/backends -DASSETS_DIR=\\\"$(ASSETS_DIR)\\\" -g
-LIBS = -L$(ROS_LIB_DIR) -lroscpp -lrosconsole -limage_transport -lcv_bridge
+LIBS = -L$(ROS_LIB_DIR) -lroscpp -lrosconsole -lroscpp_serialization -limage_transport -lcv_bridge
 
 ##---------------------------------------------------------------------
 ## BUILD FLAGS PER PLATFORM
