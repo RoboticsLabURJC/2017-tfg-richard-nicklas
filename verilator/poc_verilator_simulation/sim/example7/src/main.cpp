@@ -195,9 +195,10 @@ void tickDut(Vdesign_top *top, const std::vector<SimElement *> &sim_elements,
 
   //8
   static double PosToW_inner(unsigned char pos){
-  
-   std::bitset<8> bitset{pos};
+ 
 
+   std::bitset<8> bitset{pos};
+ 
    std::cout << "Pos [" <<  bitset << "]"<<std::endl;
 
    int count=0;    
@@ -213,13 +214,29 @@ void tickDut(Vdesign_top *top, const std::vector<SimElement *> &sim_elements,
         bool led_on = pos & (1 << led_n);
 	if (led_on) count++;
    }
+ 
 
    std::cout << "C [" <<  count << "]"<<std::endl;
-	return count>0 ? 0.5:-0.5;
+	return count>0 ? 0.15:-0.15;
   }
 
+  static double DisToV_inner(unsigned char dis){
 
 
+  }
+
+  double publishVW(double v, double w, ros::Publisher &pub){
+
+   geometry_msgs::Twist base_cmd;
+
+   base_cmd.linear.x = base_cmd.linear.y = base_cmd.angular.z = 0;
+
+   base_cmd.linear.x = v;
+   base_cmd.angular.z = w;
+
+   pub.publish(base_cmd);
+
+  }
 
 
 void resetDut(Vdesign_top *top, const std::vector<SimElement *> &sim_elements,
@@ -277,8 +294,6 @@ void imageCallback(const sensor_msgs::ImageConstPtr& msg)
 {
   try
   {
-
-  fprintf(stdout,"callback :D\n");
 
      input_feed = cv_bridge::toCvCopy(msg, "bgr8")->image;
 
@@ -369,14 +384,14 @@ int main(int argc, char **argv) {
          input_image_1.rows == rows && input_image_1.isContinuous());
 
  /* Enable WEBCAM Feed*/
-
+/*
   cv::VideoCapture cap(0);
 
   if (!cap.isOpened()) {
 
           std::cout << "cannot open camera";
   }
-
+*/
 
   //Init Video Input 
   cv::Mat resized_input_feed;
@@ -415,13 +430,23 @@ int main(int argc, char **argv) {
   
 
   //ROS Integration
- /* 
+  
   ros::init(argc, argv, "image_listener");
-  ros::NodeHandle nh;
 
-  image_transport::ImageTransport it(nh);
+  // /image_raw
+  ros::NodeHandle image_nh;
+
+  image_transport::ImageTransport it(image_nh);
   image_transport::Subscriber sub = it.subscribe("image_raw", 1, imageCallback);
-*/
+
+  // /cmd_vel
+  ros::NodeHandle motor_nh;
+
+  ros::Publisher cmd_vel_pub_;
+  cmd_vel_pub_ = nh_.advertise<geometry_msgs::Twist>("/cmd_vel", 1);
+  
+
+
 
 
   // Main loop
@@ -446,16 +471,13 @@ int main(int argc, char **argv) {
     }
 
     //ROS Callback handling attached to the main loop
-   // ros::spinOnce();
+    ros::spinOnce();
 
     // Start the Dear ImGui frame
     ImGui_ImplOpenGL3_NewFrame();
     ImGui_ImplSDL2_NewFrame();
     ImGui::NewFrame();
 
-    // 1. Show the big demo window (Most of the sample code is in
-    // ImGui::ShowDemoWindow()! You can browse its code to learn more about Dear
-    // ImGui!).
     if (show_demo_window) ImGui::ShowDemoWindow(&show_demo_window);
 
     // main window
@@ -473,7 +495,7 @@ int main(int argc, char **argv) {
 
 
 //WEBCAM ENABLE
-      cap >> input_feed;
+//      cap >> input_feed;
 
 //
       cv::resize(input_feed,resized_input_feed,cv::Size(cols,rows),cv::INTER_LINEAR);
@@ -518,7 +540,7 @@ int main(int argc, char **argv) {
         }
       }
 
-      double test = PosToW_inner(top->leds);
+      double w = PosToW_inner(top->leds);
 
       ImGui::Text("[Dis]");
       ImGui::SameLine();
@@ -531,8 +553,12 @@ int main(int argc, char **argv) {
           ImGui::SameLine();
         }
       }
+      
+      double v = DisToV_inner(top->leds);
 
-    
+      publishVW(v,w,cmd_vel_pub_);
+   
+
 
       ImGui::Text("Application average %.3f ms/frame (%.1f FPS)",
                   1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
