@@ -83,7 +83,7 @@ class InputDriver : public SimElement {
     this->top->addrin = this->input_addr;
     this->top->wea = 1;
     
-    //this->top->capture_newframe = 1;
+    this->top->capture_newframe = 1;
     
     uint8_t b = (px[0] >> 4) & 0xF;
     uint8_t g = (px[1] >> 4) & 0xF;
@@ -198,7 +198,8 @@ void tickDut(Vdesign_top *top, const std::vector<SimElement *> &sim_elements,
  
 
    std::bitset<8> bitset{pos};
- 
+
+  fprintf(stdout,"bop\n"); 
    std::cout << "Pos [" <<  bitset << "]"<<std::endl;
 
    int count=0;  
@@ -222,9 +223,9 @@ void tickDut(Vdesign_top *top, const std::vector<SimElement *> &sim_elements,
 	//return count>0 ? 0.15:-0.15;
 	
   if (count>0){
-    w=-0.15;
-  }else if(count<0){
     w=0.15;
+  }else if(count<0){
+    w=-0.15;
   }else{
     w=0.1;
   }
@@ -235,6 +236,7 @@ void tickDut(Vdesign_top *top, const std::vector<SimElement *> &sim_elements,
   //3 bit
   static double DisToV_inner(unsigned char dis){
   
+    std::cout << "inner "<<std::endl;
 	  
     std::bitset<3> bitset{dis};
 
@@ -428,18 +430,18 @@ int main(int argc, char **argv) {
   // init buffers
 
   const cv::Mat input_image_1 = cv::imread(cv::String{input_image_1_path});
-  //assert(input_image_1.channels() == 3 && input_image_1.cols == cols &&
-    //     input_image_1.rows == rows && input_image_1.isContinuous());
+  assert(input_image_1.channels() == 3 && input_image_1.cols == cols &&
+         input_image_1.rows == rows && input_image_1.isContinuous());
 
  /* Enable WEBCAM Feed*/
-/*
- */
+/**/
   cv::VideoCapture cap(0);
 
   if (!cap.isOpened()) {
 
           std::cout << "cannot open camera";
   }
+
   //Init Video Input 
   cv::Mat resized_input_feed;
   
@@ -477,17 +479,16 @@ int main(int argc, char **argv) {
   
 
   //ROS Integration
+  /*
   ros::init(argc, argv, "image_listener");
 
-  /*
   // /image_raw
   ros::NodeHandle image_nh;
 
   image_transport::ImageTransport it(image_nh);
   image_transport::Subscriber sub = it.subscribe("image_raw", 1, imageCallback);
 
-*/
-  //cmd_vel
+  // /cmd_vel
   ros::NodeHandle motor_nh;
 
   ros::Publisher cmd_vel_pub_;
@@ -495,6 +496,7 @@ int main(int argc, char **argv) {
   
 
 
+*/
 
   // Main loop
   while (!done) {
@@ -518,7 +520,7 @@ int main(int argc, char **argv) {
     }
 
     //ROS Callback handling attached to the main loop
-    ros::spinOnce();
+    //ros::spinOnce();
 
     // Start the Dear ImGui frame
     ImGui_ImplOpenGL3_NewFrame();
@@ -542,7 +544,7 @@ int main(int argc, char **argv) {
 
 
 //WEBCAM ENABLE
-     cap >> input_feed;
+      cap >> input_feed;
 
 //
       cv::resize(input_feed,resized_input_feed,cv::Size(cols,rows),cv::INTER_LINEAR);
@@ -586,9 +588,12 @@ int main(int argc, char **argv) {
           ImGui::SameLine();
         }
       }
+       std::bitset<8> bitst{top->leds};
+ 
+   std::cout << "Pos [" <<  bitst << "]"<<std::endl;
+ 
+      static double w = PosToW_inner(top->leds);
 
-      double w = PosToW_inner(top->leds);
-/*
       ImGui::Text("[Dis]");
       ImGui::SameLine();
       for (int i = n_dis_leds; i > 0; i--) {
@@ -601,13 +606,16 @@ int main(int argc, char **argv) {
         }
       }
       
-      double v = DisToV_inner(top->proximity);
-*/
+      	static double v = DisToV_inner(top->proximity);
+         std::bitset<3> bitset{top->proximity};
 
-      double v = 0.1;
+    unsigned long dist = bitset.to_ulong();
+   
+    std::cout << "Dis [" <<  bitset << "]: "<< dist <<std::endl; 
+   std::cout << " vuelta"<<std::endl;
 
       //ROS Publish
-      publishVW(v,w,cmd_vel_pub_);
+//      publishVW(v,w,cmd_vel_pub_);
    
 
 

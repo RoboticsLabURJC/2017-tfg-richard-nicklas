@@ -83,7 +83,7 @@ class InputDriver : public SimElement {
     this->top->addrin = this->input_addr;
     this->top->wea = 1;
     
-    //this->top->capture_newframe = 1;
+    this->top->capture_newframe = 1;
     
     uint8_t b = (px[0] >> 4) & 0xF;
     uint8_t g = (px[1] >> 4) & 0xF;
@@ -222,9 +222,9 @@ void tickDut(Vdesign_top *top, const std::vector<SimElement *> &sim_elements,
 	//return count>0 ? 0.15:-0.15;
 	
   if (count>0){
-    w=-0.15;
-  }else if(count<0){
     w=0.15;
+  }else if(count<0){
+    w=-0.15;
   }else{
     w=0.1;
   }
@@ -235,6 +235,7 @@ void tickDut(Vdesign_top *top, const std::vector<SimElement *> &sim_elements,
   //3 bit
   static double DisToV_inner(unsigned char dis){
   
+    std::cout << "inner "<<std::endl;
 	  
     std::bitset<3> bitset{dis};
 
@@ -299,42 +300,6 @@ void resetDut(Vdesign_top *top, const std::vector<SimElement *> &sim_elements,
   for (SimElement *e : sim_elements) e->onReset();
 }
 
-GLuint create_texture(GLenum format, const cv::Mat &texture) {
-  if (texture.data == NULL) return 0;
-
-  // Create a OpenGL texture identifier
-  GLuint image_texture;
-  glGenTextures(1, &image_texture);
-  glBindTexture(GL_TEXTURE_2D, image_texture);
-
-  // Setup filtering parameters for display
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S,
-                  GL_CLAMP_TO_EDGE);  // This is required on WebGL for non
-                                      // power-of-two textures
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);  // Same
-
-  // Upload pixels into texture
-#if defined(GL_UNPACK_ROW_LENGTH) && !defined(__EMSCRIPTEN__)
-  glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
-#endif
-  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, texture.cols, texture.rows, 0,
-               format, GL_UNSIGNED_BYTE, texture.data);
-
-  return image_texture;
-}
-
-bool update_texture(GLuint texture_id, GLenum format, const cv::Mat &texture) {
-  if (texture.data == NULL) return 0;
-
-  glBindTexture(GL_TEXTURE_2D, texture_id);
-  glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, texture.cols, texture.rows, format,
-                  GL_UNSIGNED_BYTE, texture.data);
-
-  return true;
-}
-
 
 cv::Mat input_feed;
 
@@ -357,89 +322,21 @@ void imageCallback(const sensor_msgs::ImageConstPtr& msg)
 
 // Main code
 int main(int argc, char **argv) {
-  // init imgui
-  //
-  // Setup SDL
-  // (Some versions of SDL before <2.0.10 appears to have performance/stalling
-  // issues on a minority of Windows systems, depending on whether
-  // SDL_INIT_GAMECONTROLLER is enabled or disabled.. updating to latest version
-  // of SDL is recommended!)
-  if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER | SDL_INIT_GAMECONTROLLER) !=
-      0) {
-    printf("Error: %s\n", SDL_GetError());
-    return -1;
-  }
-
-  // Decide GL+GLSL versions
-#if defined(__APPLE__)
-  // GL 3.2 Core + GLSL 150
-  const char *glsl_version = "#version 150";
-  SDL_GL_SetAttribute(
-      SDL_GL_CONTEXT_FLAGS,
-      SDL_GL_CONTEXT_FORWARD_COMPATIBLE_FLAG);  // Always required on Mac
-  SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
-  SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
-  SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 2);
-#else
-  // GL 3.0 + GLSL 130
-  const char *glsl_version = "#version 130";
-  SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, 0);
-  SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
-  SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
-  SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
-#endif
-
-  // Create window with graphics context
-  SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
-  SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
-  SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
-  SDL_WindowFlags window_flags =
-      (SDL_WindowFlags)(SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE |
-                        SDL_WINDOW_ALLOW_HIGHDPI);
-  SDL_Window *window =
-      SDL_CreateWindow("Pixel Processor simulator", SDL_WINDOWPOS_CENTERED,
-                       SDL_WINDOWPOS_CENTERED, 1280, 720, window_flags);
-  SDL_GLContext gl_context = SDL_GL_CreateContext(window);
-  SDL_GL_MakeCurrent(window, gl_context);
-  SDL_GL_SetSwapInterval(1);  // Enable vsync
-
-  // Setup Dear ImGui context
-  IMGUI_CHECKVERSION();
-  ImGui::CreateContext();
-  ImGuiIO &io = ImGui::GetIO();
-  // Load a first font
-  ImFont *font = io.Fonts->AddFontDefault();
-
-  static const ImWchar icons_ranges[] = {0xe005, 0xf8ff, 0};  // Will not be copied by AddFont* so keep in scope.
-  ImFontConfig icons_config;
-  icons_config.MergeMode = true;
-  icons_config.PixelSnapH = true;
-  io.Fonts->AddFontFromFileTTF(font_awesome_path, 14.0f, &icons_config, icons_ranges);  // Merge into first font
-  io.Fonts->Build();
-
-  // Setup Dear ImGui style
-  ImGui::StyleColorsDark();
-  // ImGui::StyleColorsClassic();
-
-  // Setup Platform/Renderer backends
-  ImGui_ImplSDL2_InitForOpenGL(window, gl_context);
-  ImGui_ImplOpenGL3_Init(glsl_version);
-
   // init buffers
 
   const cv::Mat input_image_1 = cv::imread(cv::String{input_image_1_path});
-  //assert(input_image_1.channels() == 3 && input_image_1.cols == cols &&
-    //     input_image_1.rows == rows && input_image_1.isContinuous());
+  assert(input_image_1.channels() == 3 && input_image_1.cols == cols &&
+         input_image_1.rows == rows && input_image_1.isContinuous());
 
  /* Enable WEBCAM Feed*/
-/*
- */
+/**/
   cv::VideoCapture cap(0);
 
   if (!cap.isOpened()) {
 
           std::cout << "cannot open camera";
   }
+
   //Init Video Input 
   cv::Mat resized_input_feed;
   
@@ -447,12 +344,8 @@ int main(int argc, char **argv) {
   cv::Mat output_image(rows, cols, CV_8UC4);
 
 
-  uint8_t wRgbfilter = 0x00;  // no filter
-
-  // create & load input/output textures
-  GLuint input_texture_1_id = create_texture(GL_BGR, input_image_1);
-
-  GLuint output_texture_id = create_texture(GL_BGRA, output_image);
+//  uint8_t wRgbfilter = 0x00;  // no filter
+  uint8_t wRgbfilter = 0x01;  // red?
 
   // init dut, tracing and sim elements
   Vdesign_top *top = initDut(argc, argv);
@@ -473,21 +366,20 @@ int main(int argc, char **argv) {
   bool running = false;
   bool do_reset = false;
   int step_n_cycles = 0;
-  int cycles_per_iteration = 5;
+  int cycles_per_iteration = 500;
   
 
   //ROS Integration
+  /*
   ros::init(argc, argv, "image_listener");
 
-  /*
   // /image_raw
   ros::NodeHandle image_nh;
 
   image_transport::ImageTransport it(image_nh);
   image_transport::Subscriber sub = it.subscribe("image_raw", 1, imageCallback);
 
-*/
-  //cmd_vel
+  // /cmd_vel
   ros::NodeHandle motor_nh;
 
   ros::Publisher cmd_vel_pub_;
@@ -495,6 +387,7 @@ int main(int argc, char **argv) {
   
 
 
+*/
 
   // Main loop
   while (!done) {
@@ -507,42 +400,23 @@ int main(int argc, char **argv) {
     // data to your main application. Generally you may always pass all inputs
     // to dear imgui, and hide them from your application based on those two
     // flags.
-    SDL_Event event;
-    while (SDL_PollEvent(&event)) {
-      ImGui_ImplSDL2_ProcessEvent(&event);
-      if (event.type == SDL_QUIT) done = true;
-      if (event.type == SDL_WINDOWEVENT &&
-          event.window.event == SDL_WINDOWEVENT_CLOSE &&
-          event.window.windowID == SDL_GetWindowID(window))
-        done = true;
-    }
+    //
+
+
+
+
 
     //ROS Callback handling attached to the main loop
-    ros::spinOnce();
-
-    // Start the Dear ImGui frame
-    ImGui_ImplOpenGL3_NewFrame();
-    ImGui_ImplSDL2_NewFrame();
-    ImGui::NewFrame();
+    //ros::spinOnce();
 
     if (show_demo_window) ImGui::ShowDemoWindow(&show_demo_window);
 
     // main window
-    {
-      ImGui::Begin("Main");
-      ImGui::Checkbox("Demo Window", &show_demo_window);
-
-      ImGui::InputInt("Cycles per iteration", &cycles_per_iteration);
-      running ^= ImGui::Button(running ? STOP_ICON " Stop" : START_ICON " Start");ImGui::SameLine();
-      do_reset = ImGui::Button(RESET_ICON " Reset");
-
-      if (running || ImGui::Button(STEP_ICON " Step")) {
         step_n_cycles = cycles_per_iteration;
-      }
 
 
 //WEBCAM ENABLE
-     cap >> input_feed;
+      cap >> input_feed;
 
 //
       cv::resize(input_feed,resized_input_feed,cv::Size(cols,rows),cv::INTER_LINEAR);
@@ -552,69 +426,20 @@ int main(int argc, char **argv) {
 
       input_image = &resized_input_feed;
 
-      ImGui::Text("wRgbfilter=%x", wRgbfilter);
-      static bool red_filter_check = false;
-      static bool green_filter_check = false;
-      static bool blue_filter_check = false;
-      bool wRgbfilter_updated = false;
-      wRgbfilter_updated |= ImGui::Checkbox("red", &red_filter_check);
-      ImGui::SameLine();
-      wRgbfilter_updated |= ImGui::Checkbox("green", &green_filter_check);
-      ImGui::SameLine();
-      wRgbfilter_updated |= ImGui::Checkbox("blue", &blue_filter_check);
+      static double w = PosToW_inner(top->leds);
 
-      if (wRgbfilter_updated) {
-        wRgbfilter = (((uint8_t)blue_filter_check) << 2) |
-                     (((uint8_t)green_filter_check) << 1) |
-                     (uint8_t)red_filter_check;
-      }
+      static double v = DisToV_inner(top->proximity);
+         std::bitset<3> bitset{top->proximity};
 
-      ImGui::Text("Output frame buffer %d x %d (tex id=%p)", output_image.cols,
-                  output_image.rows, (void *)(intptr_t)output_texture_id);
-      ImGui::Image((void *)(intptr_t)output_texture_id,
-                   ImVec2(output_image.cols, output_image.rows));
-
-      ImGui::Text("Top level state LEDs");
-      ImGui::Text("[Pos]");
-      ImGui::SameLine();
-      for (int i = n_pos_leds; i > 0; i--) {
-        int led_n = i - 1;
-        bool led_on = top->leds & (1 << led_n);
-        auto gb = led_on ? 0 : 255;
-        ImGui::TextColored(ImVec4(255, gb, gb, ALPHA_SOLID), LED_ICON);
-        if (led_n > 0) {
-          ImGui::SameLine();
-        }
-      }
-
-      double w = PosToW_inner(top->leds);
-/*
-      ImGui::Text("[Dis]");
-      ImGui::SameLine();
-      for (int i = n_dis_leds; i > 0; i--) {
-        int led_n = i - 1;
-        bool led_on = top->proximity & (1 << led_n);
-        auto gb = led_on ? 0 : 255;
-        ImGui::TextColored(ImVec4(255, gb, gb, ALPHA_SOLID), LED_ICON);
-        if (led_n > 0) {
-          ImGui::SameLine();
-        }
-      }
-      
-      double v = DisToV_inner(top->proximity);
-*/
-
-      double v = 0.1;
+    unsigned long dist = bitset.to_ulong();
+   
+    std::cout << "Dis [" <<  bitset << "]: "<< dist <<std::endl; 
+   std::cout << " vuelta"<<std::endl;
 
       //ROS Publish
-      publishVW(v,w,cmd_vel_pub_);
+//      publishVW(v,w,cmd_vel_pub_);
    
 
-
-      ImGui::Text("Application average %.3f ms/frame (%.1f FPS)",
-                  1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
-      ImGui::End();
-    }
 
     // dut eval
     if (do_reset) {
@@ -626,27 +451,9 @@ int main(int argc, char **argv) {
       tickDut(top, simElements, &sim_time, m_trace);
     }
 
-    update_texture(output_texture_id, GL_BGRA, output_image);
 
-    // Rendering
-    ImGui::Render();
-    glViewport(0, 0, (int)io.DisplaySize.x, (int)io.DisplaySize.y);
-    glClear(GL_COLOR_BUFFER_BIT);
-    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-    SDL_GL_SwapWindow(window);
   }
 
   // Cleanup
-  ImGui_ImplOpenGL3_Shutdown();
-  ImGui_ImplSDL2_Shutdown();
-  ImGui::DestroyContext();
-
-  SDL_GL_DeleteContext(gl_context);
-  SDL_DestroyWindow(window);
-  SDL_Quit();
-
-  for (SimElement *e : simElements) delete e;
-  deinitDut(&top, m_trace);
-
   return 0;
 }
