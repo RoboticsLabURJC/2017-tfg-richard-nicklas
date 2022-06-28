@@ -433,13 +433,13 @@ int main(int argc, char **argv) {
 
  /* Enable WEBCAM Feed*/
 /*
- */
   cv::VideoCapture cap(0);
 
   if (!cap.isOpened()) {
 
           std::cout << "cannot open camera";
   }
+ */
   //Init Video Input 
   cv::Mat resized_input_feed;
   
@@ -481,12 +481,13 @@ int main(int argc, char **argv) {
 
   /*
   // /image_raw
+*/
+   
   ros::NodeHandle image_nh;
 
   image_transport::ImageTransport it(image_nh);
   image_transport::Subscriber sub = it.subscribe("image_raw", 1, imageCallback);
 
-*/
   //cmd_vel
   ros::NodeHandle motor_nh;
 
@@ -542,7 +543,7 @@ int main(int argc, char **argv) {
 
 
 //WEBCAM ENABLE
-     cap >> input_feed;
+//     cap >> input_feed;
 
 //
       cv::resize(input_feed,resized_input_feed,cv::Size(cols,rows),cv::INTER_LINEAR);
