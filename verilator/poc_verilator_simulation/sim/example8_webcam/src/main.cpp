@@ -454,6 +454,15 @@ int main(int argc, char **argv) {
          input_image_1.rows == rows && input_image_1.isContinuous());
 
 
+ /* Enable WEBCAM Feed*/
+  cv::VideoCapture cap(0);
+
+  if (!cap.isOpened()) {
+
+          std::cout << "cannot open camera";
+  }
+
+
   //Init Video Input 
   cv::Mat resized_input_feed;
   
@@ -491,19 +500,19 @@ int main(int argc, char **argv) {
   
 
   //ROS Integration
-  ros::init(argc, argv, "image_listener");
+  //ros::init(argc, argv, "image_listener");
 
   // /image_raw
-  ros::NodeHandle image_nh;
+  //ros::NodeHandle image_nh;
 
-  image_transport::ImageTransport it(image_nh);
-  image_transport::Subscriber sub = it.subscribe("image_raw", 1, imageCallback);
+  //image_transport::ImageTransport it(image_nh);
+  //image_transport::Subscriber sub = it.subscribe("image_raw", 1, imageCallback);
 
   // /cmd_vel
-  ros::NodeHandle motor_nh;
+  //ros::NodeHandle motor_nh;
 
-  ros::Publisher cmd_vel_pub_;
-  cmd_vel_pub_ = motor_nh.advertise<geometry_msgs::Twist>("/cmd_vel", 1);
+  //ros::Publisher cmd_vel_pub_;
+  //cmd_vel_pub_ = motor_nh.advertise<geometry_msgs::Twist>("/cmd_vel", 1);
   
 
 
@@ -529,7 +538,7 @@ int main(int argc, char **argv) {
     }
 
     //ROS Callback handling attached to the main loop
-    ros::spinOnce();
+    //ros::spinOnce();
 
     // Start the Dear ImGui frame
     ImGui_ImplOpenGL3_NewFrame();
@@ -550,6 +559,9 @@ int main(int argc, char **argv) {
       if (running || ImGui::Button(STEP_ICON " Step")) {
         step_n_cycles = cycles_per_iteration;
       }
+
+      //WEBCAM ENABLE
+      cap >> input_feed;
 
       cv::resize(input_feed,resized_input_feed,cv::Size(cols,rows),cv::INTER_LINEAR);
 
@@ -615,7 +627,7 @@ int main(int argc, char **argv) {
 //    std::cout << "Dis [" <<  bitset << "]: "<< dist <<std::endl; 
 
       //ROS Publish
-      publishVW(v,w,cmd_vel_pub_);
+      //publishVW(v,w,cmd_vel_pub_);
    
 
 

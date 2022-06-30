@@ -4,6 +4,10 @@
 #include <assert.h>
 #include <stdio.h>
 
+#include <opencv2/opencv.hpp>
+#include <opencv2/core.hpp>
+#include <opencv2/imgcodecs.hpp>
+
 #ifndef ASSETS_DIR
 #error ASSETS_DIR undefined
 #endif
@@ -14,7 +18,6 @@
 
 // verilator headers
 #include "Vdesign_top.h"
-#include "Vdesign_top__Syms.h"
 #include "verilated.h"
 #include "verilated_vcd_c.h"
 
@@ -79,7 +82,7 @@ class InputDriver : public SimElement {
     this->top->addrin = this->input_addr;
     this->top->wea = 1;
     
-    this->top->capture_newframe = 1;
+    //this->top->capture_newframe = 1;
     
     uint8_t b = (px[0] >> 4) & 0xF;
     uint8_t g = (px[1] >> 4) & 0xF;
@@ -189,74 +192,48 @@ void tickDut(Vdesign_top *top, const std::vector<SimElement *> &sim_elements,
   dumpTrace(m_trace, sim_time, true);
 }
 
-//8 bit
-//   centroid:
-//
-//    0123 4567 :bit number
-//    ----------
-//    0001 1000 : centered
-//
-//    0001 0000 : slightly to the left
-//    0010 0000 : to the left
-//    0100 0000 : more to the left
-//    1000 0000 : to the left most
-//
-//    0000 1000 : slightly to the right
-//    0000 0100 : to the right
-//    0000 0010 : more to the right
-//    0000 0001 : to the right most
-//
+  //8 bit
   static double PosToW_inner(unsigned char pos){
  
 
    std::bitset<8> bitset{pos};
-
-  fprintf(stdout,"bop\n"); 
+ 
    std::cout << "Pos [" <<  bitset << "]"<<std::endl;
 
    int count=0;  
    //default angular movement  
    double w=0.05;
 
-   //bit 0
-   if( pos & (1<< 7)){
-	w = -0.2;
-   //bit 1
-   } else if ( pos & (1<< 6)){
-	w = -0.15;
-   //bit 2
-   } else if ( pos & (1<< 5)){
-	w = -0.1;
-   //bit 3
-   } else if ( pos & (1<< 4)){
-	if (pos & (1<< 3))
-		w = 0.0;
-	else
-		w = -0.05;
-   //bit 4
-   } else if ( pos & (1<< 3)){
-	if (pos & (1<< 4))
-		w = 0.0;
-	else
-		w = 0.05;
-   //bit 5
-   } else if ( pos & (1<< 2)){
-	w = 0.1;
-   //bit 6
-   } else if ( pos & (1<< 1)){
-	w = 0.15;
-   //bit 7
-   } else if ( pos & (1<< 0)){
-	w = 0.2;
+   for (int i = 8; i > 4; i--) {
+        int led_n = i - 1;
+        bool led_on = pos & (1 << led_n);
+	if (led_on) count--;
    }
 
-   std::cout << "W [" <<  w << "]"<<std::endl;
+   for (int i = 4; i > 0; i--) {
+        int led_n = i - 1;
+        bool led_on = pos & (1 << led_n);
+	if (led_on) count++;
+   }
+ 
+
+   std::cout << "C [" <<  count << "]"<<std::endl;
+	//return count>0 ? 0.15:-0.15;
 	
+  if (count>0){
+    w=-0.15;
+  }else if(count<0){
+    w=0.15;
+  }else{
+    w=0.1;
+  }
+  
   return w;
   }
 
   //3 bit
   static double DisToV_inner(unsigned char dis){
+  
 	  
     std::bitset<3> bitset{dis};
 
@@ -269,16 +246,16 @@ void tickDut(Vdesign_top *top, const std::vector<SimElement *> &sim_elements,
   case 0:
     break;
   case 1:
-    v=0.2;
+    v=0.25;
     break;
   case 2:
-    v=0.15;
+    v=0.2;
     break;
   case 3:
-    v=0.1;
+    v=0.15;
     break;
   case 4:
-    v=0.075;
+    v=0.1;
     break;
   case 5:
     v=0.05;
@@ -450,10 +427,18 @@ int main(int argc, char **argv) {
   // init buffers
 
   const cv::Mat input_image_1 = cv::imread(cv::String{input_image_1_path});
-  assert(input_image_1.channels() == 3 && input_image_1.cols == cols &&
-         input_image_1.rows == rows && input_image_1.isContinuous());
+  //assert(input_image_1.channels() == 3 && input_image_1.cols == cols &&
+    //     input_image_1.rows == rows && input_image_1.isContinuous());
 
+ /* Enable WEBCAM Feed*/
+/*
+  cv::VideoCapture cap(0);
 
+  if (!cap.isOpened()) {
+
+          std::cout << "cannot open camera";
+  }
+ */
   //Init Video Input 
   cv::Mat resized_input_feed;
   
@@ -493,18 +478,21 @@ int main(int argc, char **argv) {
   //ROS Integration
   ros::init(argc, argv, "image_listener");
 
+  /*
+*/
   // /image_raw
   ros::NodeHandle image_nh;
 
   image_transport::ImageTransport it(image_nh);
   image_transport::Subscriber sub = it.subscribe("image_raw", 1, imageCallback);
 
-  // /cmd_vel
+  //cmd_vel
   ros::NodeHandle motor_nh;
 
   ros::Publisher cmd_vel_pub_;
   cmd_vel_pub_ = motor_nh.advertise<geometry_msgs::Twist>("/cmd_vel", 1);
   
+
 
 
   // Main loop
@@ -551,7 +539,16 @@ int main(int argc, char **argv) {
         step_n_cycles = cycles_per_iteration;
       }
 
+
+//WEBCAM ENABLE
+//     cap >> input_feed;
+
+
+    
       cv::resize(input_feed,resized_input_feed,cv::Size(cols,rows),cv::INTER_LINEAR);
+
+//      assert(input_feed.channels() == 3 && input_feed.cols == cols &&
+//         input_feed.rows == rows && input_feed.isContinuous());
 
       input_image = &resized_input_feed;
 
@@ -567,9 +564,9 @@ int main(int argc, char **argv) {
       wRgbfilter_updated |= ImGui::Checkbox("blue", &blue_filter_check);
 
       if (wRgbfilter_updated) {
-        wRgbfilter = (((uint8_t)red_filter_check) << 2) |
+        wRgbfilter = (((uint8_t)blue_filter_check) << 2) |
                      (((uint8_t)green_filter_check) << 1) |
-                     (uint8_t)blue_filter_check;
+                     (uint8_t)red_filter_check;
       }
 
       ImGui::Text("Output frame buffer %d x %d (tex id=%p)", output_image.cols,
@@ -589,12 +586,9 @@ int main(int argc, char **argv) {
           ImGui::SameLine();
         }
       }
-   //   std::bitset<8> bitst{top->leds};
-  //    std::cout << "Pos [" <<  bitst << "]"<<std::endl;
- 
-      static double w;
-      w = PosToW_inner(top->leds);
 
+      double w = PosToW_inner(top->leds);
+/*
       ImGui::Text("[Dis]");
       ImGui::SameLine();
       for (int i = n_dis_leds; i > 0; i--) {
@@ -607,12 +601,10 @@ int main(int argc, char **argv) {
         }
       }
       
-      	static double v;
-       v = DisToV_inner(top->proximity);
-//         std::bitset<3> bitset{top->proximity};
+      double v = DisToV_inner(top->proximity);
+*/
 
-//    unsigned long dist = bitset.to_ulong();
-//    std::cout << "Dis [" <<  bitset << "]: "<< dist <<std::endl; 
+      double v = 0.1;
 
       //ROS Publish
       publishVW(v,w,cmd_vel_pub_);

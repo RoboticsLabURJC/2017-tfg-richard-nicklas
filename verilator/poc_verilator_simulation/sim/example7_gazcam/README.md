@@ -1,5 +1,3 @@
-
-
 This example reads from ROS topic "/image_raw" and feeds the data to our simulated verilog modules. 
 The processed image data is returned, transformed and published to "/cmd_vel" 
 
