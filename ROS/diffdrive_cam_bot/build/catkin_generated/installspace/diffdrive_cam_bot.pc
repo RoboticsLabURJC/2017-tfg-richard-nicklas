@@ -1,0 +1,8 @@
+prefix=/usr/local
+
+Name: diffdrive_cam_bot
+Description: Description of diffdrive_cam_bot
+Version: 1.0.0
+Cflags: 
+Libs: -L${prefix}/lib 
+Requires: 
