@@ -82,7 +82,7 @@ module centroid
 
       // minimum number to consider an image detected and not being noise
       // change this value
-      c_min_colorpxls = 128 //having 13312 pxls, at least 128 seems reasonable
+      c_min_colorpxls = 100 //having 13312 pxls, at least 128 seems reasonable
 
   )
   (

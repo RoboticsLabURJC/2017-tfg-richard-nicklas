@@ -82,7 +82,7 @@ module centroid
 
       // minimum number to consider an image detected and not being noise
       // change this value
-      c_min_colorpxls = 256 //having 13312 pxls, at least 128 seems reasonable
+      c_min_colorpxls = 128 //having 13312 pxls, at least 128 seems reasonable
 
   )
   (
@@ -161,8 +161,7 @@ module centroid
     if (colorpxls_i <= c_min_colorpxls) // not enough color pixels detected
       centroid_tmp = 0;
     else if (absdif_lft_rght < colorpxls_div)  // consider in the middle
-      //centroid_tmp[4:3] = 2'b11; // 0001 1000
-      centroid_tmp[4:2] = 3'b111; // 0001 1100
+      centroid_tmp[4:3] = 2'b11; // 0001 1000
       //centroid_tmp = 8'b00011000;
     else if (left) begin // more threshold pixels on the left
       // start checking from the edges

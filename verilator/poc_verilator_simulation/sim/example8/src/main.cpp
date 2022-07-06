@@ -40,8 +40,8 @@ typedef cv::Vec<uint8_t, 4> BGRAPixel;
 
 const int n_pos_leds = 8;
 const int n_dis_leds = 3;
-const int cols = 80;
-const int rows = 60;
+const int cols = 160;
+const int rows = 120;
 const uint8_t ALPHA_SOLID = 255;
 
 const char input_image_1_path[] = ASSETS_DIR "/red_ball_center_80x60.png";
@@ -208,46 +208,44 @@ void tickDut(Vdesign_top *top, const std::vector<SimElement *> &sim_elements,
 //
   static double PosToW_inner(unsigned char pos){
  
-
    std::bitset<8> bitset{pos};
 
-  fprintf(stdout,"bop\n"); 
    std::cout << "Pos [" <<  bitset << "]"<<std::endl;
 
    int count=0;  
    //default angular movement  
-   double w=0.05;
+   double w=-0.15;
 
    //bit 0
    if( pos & (1<< 7)){
-	w = -0.2;
+	w = -0.15;
    //bit 1
    } else if ( pos & (1<< 6)){
-	w = -0.15;
+	w = -0.12;
    //bit 2
    } else if ( pos & (1<< 5)){
-	w = -0.1;
+	w = -0.08;
    //bit 3
    } else if ( pos & (1<< 4)){
 	if (pos & (1<< 3))
 		w = 0.0;
 	else
-		w = -0.05;
+		w = -0.025;
    //bit 4
    } else if ( pos & (1<< 3)){
 	if (pos & (1<< 4))
 		w = 0.0;
 	else
-		w = 0.05;
+		w = 0.025;
    //bit 5
    } else if ( pos & (1<< 2)){
-	w = 0.1;
+	w = 0.08;
    //bit 6
    } else if ( pos & (1<< 1)){
-	w = 0.15;
+	w = 0.12;
    //bit 7
    } else if ( pos & (1<< 0)){
-	w = 0.2;
+	w = 0.15;
    }
 
    std::cout << "W [" <<  w << "]"<<std::endl;
@@ -272,22 +270,22 @@ void tickDut(Vdesign_top *top, const std::vector<SimElement *> &sim_elements,
     v=0.2;
     break;
   case 2:
-    v=0.15;
+    v=0.175;
     break;
   case 3:
-    v=0.1;
+    v=0.15;
     break;
   case 4:
-    v=0.075;
+    v=0.01;
     break;
   case 5:
     v=0.05;
     break;
   case 6:
-    v=0.00;
+    v=0.025;
     break;
   case 7:
-    v=-0.05;
+    v=-0.025;
     break;
   default:
     v=0.00;
@@ -450,8 +448,8 @@ int main(int argc, char **argv) {
   // init buffers
 
   const cv::Mat input_image_1 = cv::imread(cv::String{input_image_1_path});
-  assert(input_image_1.channels() == 3 && input_image_1.cols == cols &&
-         input_image_1.rows == rows && input_image_1.isContinuous());
+  //assert(input_image_1.channels() == 3 && input_image_1.cols == cols &&
+  //       input_image_1.rows == rows && input_image_1.isContinuous());
 
 
   //Init Video Input 
@@ -581,8 +579,8 @@ int main(int argc, char **argv) {
       ImGui::Text("[Pos]");
       ImGui::SameLine();
       for (int i = n_pos_leds; i > 0; i--) {
-        int led_n = i - 1;
-        bool led_on = top->leds & (1 << led_n);
+        int led_n = i -1;
+        bool led_on = top->leds & (1 << (7 - led_n));
         auto gb = led_on ? 0 : 255;
         ImGui::TextColored(ImVec4(255, gb, gb, ALPHA_SOLID), LED_ICON);
         if (led_n > 0) {

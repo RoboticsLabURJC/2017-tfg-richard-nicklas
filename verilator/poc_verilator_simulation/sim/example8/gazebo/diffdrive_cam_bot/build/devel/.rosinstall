@@ -1,0 +1,2 @@
+- setup-file:
+    local-name: /home/jmplaza/catkin_ws/src/diffdrive_cam_bot/build/devel/setup.sh

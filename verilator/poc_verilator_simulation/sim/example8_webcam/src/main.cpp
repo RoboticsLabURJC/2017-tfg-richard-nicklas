@@ -40,8 +40,8 @@ typedef cv::Vec<uint8_t, 4> BGRAPixel;
 
 const int n_pos_leds = 8;
 const int n_dis_leds = 3;
-const int cols = 80;
-const int rows = 60;
+const int cols = 160;
+const int rows = 120;
 const uint8_t ALPHA_SOLID = 255;
 
 const char input_image_1_path[] = ASSETS_DIR "/red_ball_center_80x60.png";
@@ -450,8 +450,8 @@ int main(int argc, char **argv) {
   // init buffers
 
   const cv::Mat input_image_1 = cv::imread(cv::String{input_image_1_path});
-  assert(input_image_1.channels() == 3 && input_image_1.cols == cols &&
-         input_image_1.rows == rows && input_image_1.isContinuous());
+  //assert(input_image_1.channels() == 3 && input_image_1.cols == cols &&
+  //       input_image_1.rows == rows && input_image_1.isContinuous());
 
 
  /* Enable WEBCAM Feed*/
